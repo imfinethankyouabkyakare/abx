@@ -87,7 +87,7 @@ st.markdown("<h1 class='title'>About Us </h1>", unsafe_allow_html=True)
 col1, col2 = st.columns([1, 2])  # Adjust the proportions as needed
 
 with col1:
-    st.image("D:\\project\\1000_F_643686570_jlFaFaXfYNQKfvdnOAAYbY9E4AkUPWDb-removebg-preview.png", use_column_width=True)
+    st.image("1000_F_643686570_jlFaFaXfYNQKfvdnOAAYbY9E4AkUPWDb-removebg-preview.png", use_column_width=True)
     st.markdown("<div class='disclaimer'>SAATHI IS BY YOU , WITH YOU AND FOR YOU!🎯</div>", unsafe_allow_html=True)
 
 with col2:
