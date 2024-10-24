@@ -4,7 +4,7 @@ from firebase_admin import credentials, auth
 
 # Use Streamlit session state to keep track of Firebase initialization
 if "firebase_initialized" not in st.session_state:
-    cred = credentials.Certificate("C:\\Users\\goswa\\Downloads\\test-firestore-streamlit-c7e99-firebase-adminsdk-lm9jd-d02aeb541f.json")
+    cred = credentials.Certificate("saathi-439108-2866ecb350dc - Copy.json")
     
     # Only initialize Firebase if not already initialized
     if not firebase_admin._apps:
