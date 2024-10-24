@@ -7,3 +7,33 @@ pdfplumber==0.9.0  # For PDF parsing in Python
 sympy==1.12  # Optional for more advanced symbolic calculations
 python-dotenv==1.0.0
 google-generativeai==0.2.0  # For the Gemini API
+firebase-admin
+python-dotenv
+PyPDF2
+langchain
+langchain_google_genai
+faiss-cpu
+fpdf
+beautifulsoup4
+requests
+streamlit
+PyPDF2
+langchain
+langchain_google_genai
+streamlit
+PyPDF2
+langchain
+langchain_google_genai
+faiss-cpu
+python-dotenv
+google-generativeai
+beautifulsoup4
+requests
+streamlit
+google-generativeai
+matplotlib
+networkx
+streamlit
+streamlit-drawable-canvas
+numpy
+
