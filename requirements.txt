@@ -1,7 +1,6 @@
 streamlit
 Pillow
 langchain
-faiss-gpu
 pdfplumber
 sympy
 python-dotenv
