@@ -1,5 +1,5 @@
 streamlit==1.26.0
-Pillow==9.3.0
+Pillow
 openai==0.27.0  # If you are using OpenAI for chatbot or AI services
 langchain==0.0.194  # For conversational PDF analyzer or chat applications
 faiss-cpu==1.7.4  # For vector similarity search, if you're using FAISS
