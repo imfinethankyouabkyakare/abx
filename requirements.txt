@@ -1,12 +1,11 @@
-streamlit==1.26.0
+streamlit
 Pillow
-openai==0.27.0  # If you are using OpenAI for chatbot or AI services
-langchain==0.0.194  # For conversational PDF analyzer or chat applications
-faiss-cpu==1.7.4  # For vector similarity search, if you're using FAISS
-pdfplumber==0.9.0  # For PDF parsing in Python
-sympy==1.12  # Optional for more advanced symbolic calculations
-python-dotenv==1.0.0
-google-generativeai  # For the Gemini API
+langchain
+faiss-gpu
+pdfplumber
+sympy
+python-dotenv
+google-generativeai
 pipdeptree
 firebase-admin
 python-dotenv
