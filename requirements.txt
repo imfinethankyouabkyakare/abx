@@ -6,7 +6,8 @@ faiss-cpu==1.7.4  # For vector similarity search, if you're using FAISS
 pdfplumber==0.9.0  # For PDF parsing in Python
 sympy==1.12  # Optional for more advanced symbolic calculations
 python-dotenv==1.0.0
-google-generativeai==0.2.0  # For the Gemini API
+google-generativeai  # For the Gemini API
+pipdeptree
 firebase-admin
 python-dotenv
 PyPDF2
