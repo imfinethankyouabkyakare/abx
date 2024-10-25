@@ -299,5 +299,12 @@ def main():
     elif menu == "Quiz Generator":
         quiz_generator()
 
-if __name__ == "__main__":
+Check login status and run app
+if 'authenticated' not in st.session_state:
+    st.session_state['authenticated'] = False
+
+if not st.session_state['authenticated']:
+    login()
+else:
     main()
+
