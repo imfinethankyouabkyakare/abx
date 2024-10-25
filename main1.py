@@ -1,3 +1,4 @@
+%%writefile app.py
 import streamlit as st
 from streamlit_drawable_canvas import st_canvas
 import json
@@ -10,8 +11,6 @@ from langchain.prompts import PromptTemplate
 from dotenv import load_dotenv
 from langchain.chains.question_answering import load_qa_chain
 from langchain.schema import Document
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
-from langchain_community.vectorstores import FAISS
 import requests
 from bs4 import BeautifulSoup
 
@@ -154,7 +153,43 @@ def sticky_notes():
     st.title("Sticky Notes")
     st.write("Create and store important information here.")
 
-# Function to extract text from PDF files
+# PDF analyzer page
+def pdf_analyzer():
+    st.title("PDF Analyzer")
+    st.write("Upload PDF files to analyze content.")
+    pdf_docs = st.file_uploader("Upload your PDF Files", accept_multiple_files=True, type="pdf")
+    if pdf_docs and st.button("Analyze PDFs"):
+        st.write("PDF analysis is a placeholder; full analysis feature to be added.")
+
+# Roadmap page
+def roadmap():
+    st.title("Roadmap")
+    roadmap_text = st.text_area("Enter your roadmap:")
+    if st.button("Save Roadmap"):
+        st.session_state["roadmap"] = roadmap_text
+        st.success("Roadmap saved!")
+    st.write("### Your Roadmap")
+    st.write(st.session_state.get("roadmap", ""))
+
+# Calculator page
+def calculator():
+    st.title("Calculator")
+    num1 = st.number_input("Enter first number", value=0.0)
+    operation = st.selectbox("Operation", ["Add", "Subtract", "Multiply", "Divide"])
+    num2 = st.number_input("Enter second number", value=0.0)
+
+    if st.button("Calculate"):
+        if operation == "Add":
+            result = num1 + num2
+        elif operation == "Subtract":
+            result = num1 - num2
+        elif operation == "Multiply":
+            result = num1 * num2
+        elif operation == "Divide":
+            result = num1 / num2 if num2 != 0 else "Cannot divide by zero"
+        st.write("Result:", result)
+
+# Quiz generator page
 def get_pdf_text(pdf_docs):
     """Extract text from PDF files."""
     text = ""
@@ -164,98 +199,105 @@ def get_pdf_text(pdf_docs):
             text += page.extract_text() or ""
     return text
 
-# Function to split text into manageable chunks
-def get_text_chunks(text):
-    """Split text into chunks for processing."""
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=10000, chunk_overlap=1000)
-    chunks = text_splitter.split_text(text)
-    return chunks
+def fetch_url_content(url):
+    """Fetch and extract text from a URL."""
+    response = requests.get(url)
+    if response.status_code == 200:
+        soup = BeautifulSoup(response.content, "html.parser")
+        return soup.get_text()
+    else:
+        st.error("Failed to retrieve content. Please check the URL.")
+        return ""
 
-# Function to create and store the vector index
-def get_vector_store(text_chunks):
-    """Create a vector store from text chunks."""
-    embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
-    vector_store = FAISS.from_texts(text_chunks, embedding=embeddings)
-    vector_store.save_local("faiss_index")
-
-# Function to load a conversational chain for question answering
-def get_conversational_chain():
-    """Load conversational chain for answering questions."""
+def generate_quiz_questions_from_text(text, noq):
+    """Generate quiz questions from text using Google Generative AI."""
     prompt_template = """
-    Answer the question as detailed as possible from the provided context. If the answer is not available, say,
-    "Answer is not available in the context." Avoid providing incorrect answers.
+    Generate {NOQ} quiz questions based on the following content:\n{context}\n
+    For each question, provide 4 answer options labeled A, B, C, and D, with one correct answer. Format the output as follows:
 
-    Context:\n {context}?\n
-    Question: \n{question}\n
-    Answer:
+    Question 1: [Your question here]\n
+    A. [Option A]\n
+    B. [Option B]\n
+    C. [Option C]\n
+    D. [Option D]\n
+
+    Answer Key:\n
+    1. [Question 1 number] - [Correct option]\n
+    2. [Question 2 number] - [Correct option]\n
     """
     model = ChatGoogleGenerativeAI(model="gemini-pro", temperature=0.3)
-    prompt = PromptTemplate(template=prompt_template, input_variables=["context", "question"])
+    prompt = PromptTemplate(template=prompt_template, input_variables=["context", "NOQ"])
     chain = load_qa_chain(model, chain_type="stuff", prompt=prompt)
-    return chain
 
-# Function to handle user input and search for answers
-def user_input(user_question):
-    """Handle user questions to retrieve answers from the vector store."""
-    embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
-    new_db = FAISS.load_local("faiss_index", embeddings, allow_dangerous_deserialization=True)
-    docs = new_db.similarity_search(user_question)
-    chain = get_conversational_chain()
-    response = chain({"input_documents": docs, "question": user_question}, return_only_outputs=True)
-    st.write("Reply: ", response["output_text"])
+    document = Document(page_content=text)
+    response = chain({"input_documents": [document], "NOQ": noq})
+    return response["output_text"]
 
-# PDF analyzer page
-def pdf_analyzer():
-    st.title("PDF Analyzer 🔍")
-    st.write("Upload PDF files to analyze content and ask questions directly.")
+def quiz_generator():
+    st.title("AI Quiz Generator 🎓")
+    st.write("Generate quiz questions from PDFs, Topics, or URLs")
     
-    # Input field for user questions
-    user_question = st.text_input("Ask a Question from the PDF Files:")
+    option = st.selectbox("Select Input Type:", ("📄 Upload PDF", "💬 Enter Topic", "🔗 Enter URL"))
+    noq = st.number_input("Enter the Number of Questions to Generate:", min_value=1, max_value=50, value=5)
 
-    # File uploader section
-    st.subheader("Upload PDF Files")
-    pdf_docs = st.file_uploader("Upload your PDF Files:", accept_multiple_files=True, type="pdf")
+    if option == "📄 Upload PDF":
+        pdf_docs = st.file_uploader("Upload your PDF Files:", accept_multiple_files=True)
+        if st.button("Generate Quiz Questions from PDF"):
+            if pdf_docs:
+                with st.spinner("Processing PDF..."):
+                    raw_text = get_pdf_text(pdf_docs)
+                    questions = generate_quiz_questions_from_text(raw_text, noq)
+                    st.success("Quiz Questions Generated!")
+                    st.write(questions)
+            else:
+                st.warning("Please upload at least one PDF file.")
+    
+    elif option == "💬 Enter Topic":
+        topic = st.text_area("Enter the Topic:")
+        if st.button("Generate Quiz Questions from Topic"):
+            if topic.strip():
+                with st.spinner("Generating Questions..."):
+                    questions = generate_quiz_questions_from_text(topic, noq)
+                    st.success("Quiz Questions Generated!")
+                    st.write(questions)
+            else:
+                st.warning("Please enter a valid topic.")
+    
+    elif option == "🔗 Enter URL":
+        url = st.text_input("Enter the URL:")
+        if st.button("Generate Quiz Questions from URL"):
+            if url.strip():
+                with st.spinner("Fetching URL Content..."):
+                    content = fetch_url_content(url)
+                    if content:
+                        questions = generate_quiz_questions_from_text(content, noq)
+                        st.success("Quiz Questions Generated!")
+                        st.write(questions)
+            else:
+                st.warning("Please enter a valid URL.")
 
-    # Process PDF files on button click
-    if pdf_docs and st.button("Submit & Process"):
-        with st.spinner("Processing..."):
-            raw_text = get_pdf_text(pdf_docs)
-            text_chunks = get_text_chunks(raw_text)
-            get_vector_store(text_chunks)
-            st.success("Processing complete! You can now ask questions.")
-
-    # Handle user questions
-    if user_question:
-        with st.spinner("Retrieving answer..."):
-            user_input(user_question)
-
-# Main application structure
 def main():
-    st.sidebar.title("Navigation")
-    page = st.sidebar.radio("Go to", ["Login", "Notes", "To-Do List", "Sticky Notes", "PDF Analyzer"])
-    
-    if page == "Login":
-        login()
-    elif page == "Notes":
-        if st.session_state.get('authenticated'):
-            notes()
-        else:
-            st.warning("Please log in to access the Notes section.")
-    elif page == "To-Do List":
-        if st.session_state.get('authenticated'):
-            todo()
-        else:
-            st.warning("Please log in to access the To-Do List section.")
-    elif page == "Sticky Notes":
-        if st.session_state.get('authenticated'):
-            sticky_notes()
-        else:
-            st.warning("Please log in to access the Sticky Notes section.")
-    elif page == "PDF Analyzer":
-        if st.session_state.get('authenticated'):
-            pdf_analyzer()
-        else:
-            st.warning("Please log in to access the PDF Analyzer section.")
+    st.sidebar.title("Self Tutor App")
+    menu = st.sidebar.selectbox("Select an Option", ["About Us", "Notes", "Sticky Notes", "PDF Analyzer", 
+                                                     "Roadmap", "Calculator", "Todo", "Quiz Generator"])
+
+    if menu == "About Us":
+        st.title("About Us")
+        st.write("This app helps students with various academic tasks and organization.")
+    elif menu == "Notes":
+        notes()
+    elif menu == "Sticky Notes":
+        sticky_notes()
+    elif menu == "PDF Analyzer":
+        pdf_analyzer()
+    elif menu == "Roadmap":
+        roadmap()
+    elif menu == "Calculator":
+        calculator()
+    elif menu == "Todo":
+        todo()
+    elif menu == "Quiz Generator":
+        quiz_generator()
 
 if __name__ == "__main__":
     main()
